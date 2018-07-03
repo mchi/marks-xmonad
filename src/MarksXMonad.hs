@@ -128,23 +128,28 @@ myKeyBindings =
     , ((myModMask .|. shiftMask, xK_g), spawn "google-chrome")
     , ((myModMask .|. controlMask, xK_x), shellPrompt def)
     ]
-
+--
+--swapWorkspaces:: W.Workspace i l a -> X ()
+--swapWorkspaces targetWorkspace = do
+--  screen <- gets (listToMaybe . W.visible . windowset)
+--  whenJust screen $ windows . W.greedyView . W.tag . W.workspace
+--
 --    , ((myModMask, xK_p), spawn "dmenu_run -b")
+
 myWorkspaceOrder = [0, 1, 2, 3, 4]
 
 myKeys
-    -- bind q,w,e,r
  =
     myKeyBindings ++
     [ ( (m .|. myModMask, key)
       , screenWorkspace sc >>= flip whenJust (windows . f))
-    | (key, sc) <- zip [xK_d, xK_w, xK_e, xK_r, xK_t] myWorkspaceOrder -- was [0..] *** change to match your screen order ***
-    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
+    | (key, sc) <- zip [xK_d, xK_w, xK_e, xK_r, xK_t] myWorkspaceOrder
+    , (f, m) <- [(W.view, 0), (W.shift, shiftMask), (W.greedyView, controlMask)]
     ] ++
     -- repeat for number keys
     [ ( (m .|. myModMask, key)
       , screenWorkspace sc >>= flip whenJust (windows . f))
-    | (key, sc) <- zip [xK_1, xK_3, xK_4, xK_5, xK_0] myWorkspaceOrder -- was [0..] *** change to match your screen order ***
+    | (key, sc) <- zip [xK_1, xK_3, xK_4, xK_5, xK_0] myWorkspaceOrder
          -- was [0..] *** change to match your screen order ***
     , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
     ]
