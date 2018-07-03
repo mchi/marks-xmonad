@@ -6,6 +6,7 @@ import qualified RIO.Map                          as M
 import           XMonad
 import           XMonad.Actions.Plane
 import           XMonad.Actions.Submap
+import           XMonad.Actions.UpdatePointer
 import           XMonad.Config.Xfce
 import           XMonad.Hooks.DynamicLog
 import           XMonad.Hooks.ManageDocks
@@ -21,7 +22,11 @@ import           XMonad.Layout.NoBorders
 import           XMonad.Layout.PerWorkspace       (onWorkspace)
 import           XMonad.Layout.Reflect            (reflectHoriz, reflectVert)
 import           XMonad.Layout.ResizableTile
+import           XMonad.Layout.ResizableTile
+import           XMonad.Layout.Spacing
 import           XMonad.Layout.ThreeColumns
+import           XMonad.Prompt
+import           XMonad.Prompt.Shell
 import qualified XMonad.StackSet                  as W
 import           XMonad.Util.CustomKeys
 import           XMonad.Util.EZConfig
@@ -32,9 +37,9 @@ import           XMonad.Util.EZConfig
 -}
 myModMask = mod1Mask
 
-myFocusedBorderColor = "#8F5902" --"#e6550d"      -- color of focused border
+myFocusedBorderColor = "#CC7832" -- orange is "#CC7832"; yellow is "#BBB529"
 
-myNormalBorderColor = "#cccccc" -- color of inactive border
+myNormalBorderColor = "#333333" -- color of inactive border
 
 myBorderWidth = 1 -- width of border around windows
 
@@ -78,10 +83,7 @@ myUrgentWSRight = "}"
   prepared to delve into the workspace navigation keybindings section
   as well.
 -}
-myExtraWorkspaces = [(xK_0, "0"), (xK_minus, "11"), (xK_equal, "12")]
-
-myWorkspaces =
-    ["1", "2", "3", "4", "5", "6", "7", "8", "9"] ++ (map snd myExtraWorkspaces)
+myWorkspaces = ["1", "2", "3", "4"]
 
 startupWorkspace = "1" -- which workspace do you want to be on after launch?
   -- Full layout makes every window full screen. When you toggle the
@@ -106,13 +108,10 @@ startupWorkspace = "1" -- which workspace do you want to be on after launch?
 ---  ||| noBorders Full
 ---  ||| Grid))
 default4kLayouts =
-    smartBorders
-        (avoidStruts (desktopLayoutModifiers $ noBorders Full ||| Grid))
+    smartBorders . avoidStruts . desktopLayoutModifiers $
+    ((reflectVert . Mirror) (ResizableTall 1 (3 / 100) (3 / 4) []) |||
+     (ResizableTall 1 (3 / 100) (1 / 2) []) ||| Grid ||| noBorders Full)
 
---              ||| reflectHoriz (autoMaster 1 (1 / 100) Grid)
---   ||| Tabbed
---   ||| ThreeColMid 1 (3/100) (3/5)
---     ||| reflectVert (autoMaster 1 (1/100) Grid)
 -- Here we combine our default layouts with our specific, workspace-locked
 -- layouts.
 myLayouts = default4kLayouts
@@ -122,33 +121,38 @@ myKeyBindings =
     , ((myModMask, xK_b), sendMessage ToggleStruts)
     , ((myModMask, xK_a), sendMessage MirrorShrink)
     , ((myModMask, xK_z), sendMessage MirrorExpand)
-    , ((myModMask, xK_p), spawn "dmenu_run -b")
     , ((myModMask, xK_u), focusUrgent)
     , ((0, 0x1008FF12), spawn "amixer -D pulse set Master toggle")
     , ((0, 0x1008FF11), spawn "amixer -q set Master 10%-")
     , ((0, 0x1008FF13), spawn "amixer -q set Master 10%+")
     , ((myModMask .|. shiftMask, xK_g), spawn "google-chrome")
+    , ((myModMask .|. controlMask, xK_x), shellPrompt def)
     ]
 
---    , ((myModMask .|. shiftMask, xK_h), spawn "atom")
-{-
-  Workspace navigation keybindings. This is probably the part of the
-  configuration I have spent the most time messing with, but understand
-  the least. Be very careful if messing with this section.
--}
-myKeys =
+--    , ((myModMask, xK_p), spawn "dmenu_run -b")
+myWorkspaceOrder = [0, 1, 2, 3, 4]
+
+myKeys
+    -- bind q,w,e,r
+ =
     myKeyBindings ++
-    [ ((myModMask, key), (windows $ onCurrentScreen W.greedyView ws))
-    | (key, ws) <- myExtraWorkspaces
-    ] ++
-    [ ((myModMask .|. shiftMask, key), (windows $ onCurrentScreen W.shift ws))
-    | (key, ws) <- myExtraWorkspaces
-    ] ++
     [ ( (m .|. myModMask, key)
       , screenWorkspace sc >>= flip whenJust (windows . f))
-    | (key, sc) <- zip [xK_d, xK_w, xK_e, xK_r] [0, 1, 2, 3] -- was [0..] *** change to match your screen order ***
-    , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]
+    | (key, sc) <- zip [xK_d, xK_w, xK_e, xK_r, xK_t] myWorkspaceOrder -- was [0..] *** change to match your screen order ***
+    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
+    ] ++
+    -- repeat for number keys
+    [ ( (m .|. myModMask, key)
+      , screenWorkspace sc >>= flip whenJust (windows . f))
+    | (key, sc) <- zip [xK_1, xK_3, xK_4, xK_5, xK_0] myWorkspaceOrder -- was [0..] *** change to match your screen order ***
+         -- was [0..] *** change to match your screen order ***
+    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
     ]
+
+myRemovedKeys =
+    ["M-" ++ [n] | n <- ['1' .. '9']] ++ ["M-S-" ++ [n] | n <- ['1' .. '9']]
+
+myLogHook = updatePointer (0.5, 0.5) (0, 0)
 
 {-
   Here we actually stitch together all the configuration settings
@@ -166,10 +170,12 @@ runMarksXMonad = do
             , layoutHook = myLayouts
             , workspaces = myWorkspaces
             , modMask = myModMask
+            , logHook = dynamicLog >> myLogHook
             , focusFollowsMouse = False
             , handleEventHook = fullscreenEventHook
             , manageHook = manageHook def <+> manageDocks
             } `removeKeys`
         [(mod1Mask, xK_Return)] -- Defer to IntelliJ muscle memory
-         `additionalKeys`
+         `removeKeysP`
+        myRemovedKeys `additionalKeys`
         myKeys
