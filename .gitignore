@@ -18,3 +18,5 @@ xmonad.state
 # files from IDE
 .idea
 *.iml
+stack.yaml.lock
+nohup.out
