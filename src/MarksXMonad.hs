@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module MarksXMonad where
 
 import           Data.Ratio                       ((%))
@@ -10,6 +12,7 @@ import           XMonad.Actions.UpdatePointer
 import           XMonad.Config.Xfce
 import           XMonad.Hooks.DynamicLog
 import           XMonad.Hooks.ManageDocks
+import           XMonad.Hooks.Script              (execScriptHook)
 import           XMonad.Hooks.SetWMName
 import           XMonad.Hooks.UrgencyHook
 import           XMonad.Layout.AutoMaster
@@ -22,8 +25,8 @@ import           XMonad.Layout.NoBorders
 import           XMonad.Layout.PerWorkspace       (onWorkspace)
 import           XMonad.Layout.Reflect            (reflectHoriz, reflectVert)
 import           XMonad.Layout.ResizableTile
-import           XMonad.Layout.ResizableTile
 import           XMonad.Layout.Spacing
+import           XMonad.Layout.Tabbed
 import           XMonad.Layout.ThreeColumns
 import           XMonad.Prompt
 import           XMonad.Prompt.Shell
@@ -83,9 +86,7 @@ myUrgentWSRight = "}"
   prepared to delve into the workspace navigation keybindings section
   as well.
 -}
-myWorkspaces = ["1", "2", "3", "4"]
-
-startupWorkspace = "1" -- which workspace do you want to be on after launch?
+startupWorkspace = "0" -- which workspace do you want to be on after launch?
   -- Full layout makes every window full screen. When you toggle the
   -- active window, it will bring the active window to the front.
   --  ||| (desktopLayoutModifiers $ getMiddleColumnSaneDefault 2 0.15 defaultThreeColumn)
@@ -109,8 +110,9 @@ startupWorkspace = "1" -- which workspace do you want to be on after launch?
 ---  ||| Grid))
 default4kLayouts =
     smartBorders . avoidStruts . desktopLayoutModifiers $
-    ((reflectVert . Mirror) (ResizableTall 1 (3 / 100) (3 / 4) []) |||
-     (ResizableTall 1 (3 / 100) (1 / 2) []) ||| Grid ||| noBorders Full)
+    Grid ||| ((reflectVert . Mirror) (ResizableTall 1 (3 / 100) (3 / 4) []) |||
+     ResizableTall 1 (3 / 100) (1 / 2) []) |||
+     noBorders Full ||| simpleTabbed
 
 -- Here we combine our default layouts with our specific, workspace-locked
 -- layouts.
@@ -119,8 +121,6 @@ myLayouts = default4kLayouts
 myKeyBindings =
     [ ((myModMask .|. shiftMask, xK_M), windows W.swapMaster)
     , ((myModMask, xK_b), sendMessage ToggleStruts)
-    , ((myModMask, xK_a), sendMessage MirrorShrink)
-    , ((myModMask, xK_z), sendMessage MirrorExpand)
     , ((myModMask, xK_u), focusUrgent)
     , ((0, 0x1008FF12), spawn "amixer -D pulse set Master toggle")
     , ((0, 0x1008FF11), spawn "amixer -q set Master 10%-")
@@ -128,43 +128,49 @@ myKeyBindings =
     , ((myModMask .|. shiftMask, xK_g), spawn "google-chrome")
     , ((myModMask .|. controlMask, xK_x), shellPrompt def)
     ]
---
---swapWorkspaces:: W.Workspace i l a -> X ()
---swapWorkspaces targetWorkspace = do
---  screen <- gets (listToMaybe . W.visible . windowset)
---  whenJust screen $ windows . W.greedyView . W.tag . W.workspace
---
---    , ((myModMask, xK_p), spawn "dmenu_run -b")
+
+myWorkspaces = ["0", "1", "2", "3", "4"]
 
 myWorkspaceOrder = [0, 1, 2, 3, 4]
 
-myKeys
- =
+myWorkspaceKeys = [xK_d, xK_w, xK_e, xK_r, xK_y]
+
+myKeys =
     myKeyBindings ++
-    [ ( (m .|. myModMask, key)
+    [
+    ( (m .|. myModMask, key)
       , screenWorkspace sc >>= flip whenJust (windows . f))
-    | (key, sc) <- zip [xK_d, xK_w, xK_e, xK_r, xK_t] myWorkspaceOrder
+    |
+     (key, sc) <- zip myWorkspaceKeys myWorkspaceOrder
     , (f, m) <- [(W.view, 0), (W.shift, shiftMask), (W.greedyView, controlMask)]
-    ] ++
-    -- repeat for number keys
-    [ ( (m .|. myModMask, key)
-      , screenWorkspace sc >>= flip whenJust (windows . f))
-    | (key, sc) <- zip [xK_1, xK_3, xK_4, xK_5, xK_0] myWorkspaceOrder
-         -- was [0..] *** change to match your screen order ***
-    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
     ]
+
+--     ++
+--    -- repeat for number keys
+--    [ ( (m .|. myModMask, key)
+--      , screenWorkspace sc >>= flip whenJust (windows . f))
+--    | (key, sc) <- zip [xK_1, xK_3, xK_4, xK_5, xK_0] myWorkspaceOrder
+--         -- was [0..] *** change to match your screen order ***
+--    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
+--    ]
+
+showScreens :: (MonadIO m) => m ()
+showScreens = return ()
 
 myRemovedKeys =
     ["M-" ++ [n] | n <- ['1' .. '9']] ++ ["M-S-" ++ [n] | n <- ['1' .. '9']]
 
+-- Make pointer follow the window we just moved
 myLogHook = updatePointer (0.5, 0.5) (0, 0)
+
 
 {-
   Here we actually stitch together all the configuration settings
   and run xmonad. We also spawn an instance of xmobar and pipe
   content into it via the logHook.
 -}
-runMarksXMonad = do
+runMarksXMonad :: IO ()
+runMarksXMonad =
     xmonad $
         withUrgencyHook NoUrgencyHook $
         xfceConfig
@@ -179,6 +185,7 @@ runMarksXMonad = do
             , focusFollowsMouse = False
             , handleEventHook = fullscreenEventHook
             , manageHook = manageHook def <+> manageDocks
+            , startupHook = execScriptHook "startup"
             } `removeKeys`
         [(mod1Mask, xK_Return)] -- Defer to IntelliJ muscle memory
          `removeKeysP`

@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+import argparse
+import subprocess
+import os
+import time
+
+STARTUP_HOOKS = ['~/.screenlayout/config.sh',
+                 'xfce4-panel --restart']
+
+
+def startup_hook():
+    time.sleep(5)
+    for a_command in STARTUP_HOOKS:
+        subprocess.check_call(
+            os.path.expanduser(a_command),
+            shell=True)
+        time.sleep(2)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('command')
+    args = parser.parse_args()
+    print("hooks: {}".format(args.command))
+    if args.command == 'startup':
+        startup_hook()
+
+
+if __name__ == '__main__':
+    main()
