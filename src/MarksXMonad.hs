@@ -126,22 +126,31 @@ myKeyBindings =
     , ((0, 0x1008FF11), spawn "amixer -q set Master 10%-")
     , ((0, 0x1008FF13), spawn "amixer -q set Master 10%+")
     , ((myModMask .|. shiftMask, xK_g), spawn "google-chrome")
+
+
     , ((myModMask .|. controlMask, xK_x), shellPrompt def)
+    , ((myModMask, xK_p), spawn "dmenu_run -b")
     ]
 
 myWorkspaces = ["0", "1", "2", "3", "4"]
+--
+--swapWorkspaces:: W.Workspace i l a -> X ()
+--swapWorkspaces targetWorkspace = do
+--  screen <- gets (listToMaybe . W.visible . windowset)
+--  whenJust screen $ windows . W.greedyView . W.tag . W.workspace
+--
 
-myWorkspaceOrder = [0, 1, 2, 3, 4]
 
-myWorkspaceKeys = [xK_d, xK_w, xK_e, xK_r, xK_y]
+myWorkspaceOrder = [0, 1, 2, 3]
+
+myWorkspaceKeys = [xK_e, xK_w, xK_r, xK_t]
 
 myKeys =
     myKeyBindings ++
     [
     ( (m .|. myModMask, key)
       , screenWorkspace sc >>= flip whenJust (windows . f))
-    |
-     (key, sc) <- zip myWorkspaceKeys myWorkspaceOrder
+    | (key, sc) <- zip myWorkspaceKeys myWorkspaceOrder
     , (f, m) <- [(W.view, 0), (W.shift, shiftMask), (W.greedyView, controlMask)]
     ]
 
@@ -164,6 +173,10 @@ myRemovedKeys =
 myLogHook = updatePointer (0.5, 0.5) (0, 0)
 
 
+spawnToWorkspace :: String -> String -> X ()
+spawnToWorkspace program workspace = do
+                                      spawn program
+                                      windows $ W.greedyView workspace
 {-
   Here we actually stitch together all the configuration settings
   and run xmonad. We also spawn an instance of xmobar and pipe
@@ -187,7 +200,7 @@ runMarksXMonad =
             , manageHook = manageHook def <+> manageDocks
             , startupHook = execScriptHook "startup"
             } `removeKeys`
-        [(mod1Mask, xK_Return)] -- Defer to IntelliJ muscle memory
+        [(mod1Mask, xK_Return)] -- Defer to IntelliJ muscle memory: alt-enter is for import auto-completion
          `removeKeysP`
         myRemovedKeys `additionalKeys`
         myKeys
