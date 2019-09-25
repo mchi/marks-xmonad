@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 79035a1cec2e8169b7747995559e3e54cf6a052699b97d83a143bc5b3dcd5919
+-- hash: 3e949f37b1a40174625d5fbd59a197c3747eca7440ccea1ed4ecb8d89ae914ce
 
 name:           marks-xmonad
 version:        0.1.0.0
@@ -13,7 +15,6 @@ author:         mchi
 maintainer:     mchi
 license:        BSD3
 build-type:     Simple
-cabal-version:  >= 1.10
 
 source-repository head
   type: git

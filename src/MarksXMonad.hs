@@ -25,6 +25,7 @@ import           XMonad.Layout.NoBorders
 import           XMonad.Layout.PerWorkspace       (onWorkspace)
 import           XMonad.Layout.Reflect            (reflectHoriz, reflectVert)
 import           XMonad.Layout.ResizableTile
+import           XMonad.Layout.Spiral
 import           XMonad.Layout.Spacing
 import           XMonad.Layout.Tabbed
 import           XMonad.Layout.ThreeColumns
@@ -110,9 +111,12 @@ startupWorkspace = "0" -- which workspace do you want to be on after launch?
 ---  ||| Grid))
 default4kLayouts =
     smartBorders . avoidStruts . desktopLayoutModifiers $
-    Grid ||| ((reflectVert . Mirror) (ResizableTall 1 (3 / 100) (3 / 4) []) |||
-     ResizableTall 1 (3 / 100) (1 / 2) []) |||
-     noBorders Full ||| simpleTabbed
+    Grid
+--    ||| (reflectVert . Mirror) (ResizableTall 1 (3 / 100) (3 / 4) [])
+    ||| (Mirror) (ResizableTall 1 (3 / 100) (3 / 4) [])
+--     ||| ResizableTile 1 (3 / 100) (1 / 2) []
+     |||     noBorders Full
+--     |||  simpleTabbed
 
 -- Here we combine our default layouts with our specific, workspace-locked
 -- layouts.
