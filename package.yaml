@@ -7,7 +7,7 @@ maintainer:          "mchi"
 description:         My xmonad config
 
 ghc-options:
-#- -Werror
+- -Werror
 - -Wcompat
 - -Wincomplete-record-updates
 - -Wincomplete-uni-patterns
