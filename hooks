@@ -6,11 +6,12 @@ import os
 import time
 
 STARTUP_HOOKS = ['~/.screenlayout/config.sh',
-                 'xfce4-panel --restart']
+                # 'xfce4-panel --restart'
+                 ]
 
 
 def startup_hook():
-    time.sleep(5)
+    time.sleep(2)
     for a_command in STARTUP_HOOKS:
         subprocess.check_call(
             os.path.expanduser(a_command),

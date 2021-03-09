@@ -21,3 +21,6 @@ xmonad.state
 
 *.log
 nohup.out
+
+Vagrantfile
+.vagrant

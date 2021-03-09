@@ -116,7 +116,7 @@ default4kLayouts =
     ||| (Mirror) (ResizableTall 1 (3 / 100) (3 / 4) [])
 --     ||| ResizableTile 1 (3 / 100) (1 / 2) []
      |||     noBorders Full
---     |||  simpleTabbed
+     |||  simpleTabbed
 
 -- Here we combine our default layouts with our specific, workspace-locked
 -- layouts.
@@ -136,7 +136,7 @@ myKeyBindings =
     , ((myModMask, xK_p), spawn "dmenu_run -b")
     ]
 
-myWorkspaces = ["0", "1", "2", "3", "4"]
+myWorkspaces = ["0", "1", "2", "3"]
 --
 --swapWorkspaces:: W.Workspace i l a -> X ()
 --swapWorkspaces targetWorkspace = do
@@ -145,9 +145,9 @@ myWorkspaces = ["0", "1", "2", "3", "4"]
 --
 
 
-myWorkspaceOrder = [0, 1, 2, 3]
+myWorkspaceOrder = [3, 0, 1, 2]
 
-myWorkspaceKeys = [xK_e, xK_w, xK_r, xK_t]
+myWorkspaceKeys = [xK_d, xK_w, xK_e, xK_r]
 
 myKeys =
     myKeyBindings ++
@@ -167,6 +167,11 @@ myKeys =
 --    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
 --    ]
 
+
+
+
+
+
 showScreens :: (MonadIO m) => m ()
 showScreens = return ()
 
@@ -175,7 +180,6 @@ myRemovedKeys =
 
 -- Make pointer follow the window we just moved
 myLogHook = updatePointer (0.5, 0.5) (0, 0)
-
 
 spawnToWorkspace :: String -> String -> X ()
 spawnToWorkspace program workspace = do

@@ -1,8 +1,8 @@
 #!/bin/sh
 #
 # Starting in xmonad v0.13, xmonad --recompile will delegate to ./build script
-
 set -eu
+export PATH=${HOME}/.local/bin:${PATH}
 
 stack build marks-xmonad:exe:xmonad --verbosity error
 stack install marks-xmonad:exe:xmonad --local-bin-path bin/ --verbosity error
